@@ -3536,7 +3536,7 @@ function quiz_access_question($quiz, $question_number) {
 
   $qinfo = $layout[$question_index];
   $question_node = node_load($qinfo['nid'], $qinfo['vid']);
-  $question_node_last = node_load($qinfo_last['nid'], $qinfo_last['vid']);
+  $question_node_last = $qinfo_last ? node_load($qinfo_last['nid'], $qinfo_last['vid']) : NULL;
 
   if (!$quiz->backwards_navigation) {
     // No backwards navigation.

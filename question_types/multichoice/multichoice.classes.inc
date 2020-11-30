@@ -812,7 +812,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    *   Array with values.
    */
   public function __construct($result_id, stdClass $question_node, $values = NULL) {
-    parent::__construct($result_id, $question_node, $values['user_answer']);
+    parent::__construct($result_id, $question_node, (isset($values['user_answer']) ? $values['user_answer'] : NULL));
     $this->user_answer_ids = array();
     // Tries is the tries part of the post data.
     if (isset($values['user_answer'])) {
