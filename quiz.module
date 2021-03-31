@@ -3720,6 +3720,7 @@ function quiz_action_info() {
     'label' => t('Add questions to @quiz', array('@quiz' => QUIZ_NAME)),
     'configurable' => FALSE,
     'vbo_configurable' => FALSE,
+    'behavior' => array(''),
   );
 
   return $actions;
