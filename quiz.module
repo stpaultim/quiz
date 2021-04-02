@@ -1052,9 +1052,12 @@ function quiz_view($node) {
         drupal_set_message($available['message']);
       }
     }
+
+    $button_text = quiz_take_quiz($node) ? 'Resume @quiz' : 'Start @quiz';
+
     // Add a link to the take tab.
     $node->content['take'] = array(
-      '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take', array('attributes' => array('class' => array('quiz-start-link')))),
+      '#markup' => l(t($button_text, array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take', array('attributes' => array('class' => array('quiz-start-link')))),
       '#weight' => 2,
     );
   }
@@ -1826,15 +1829,13 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
 }
 
 /**
- * Handles quiz taking.
- *
- * This gets executed when the main quiz node is first loaded.
+ * Find a resumable result for this quiz and the current user.
  *
  * @param $quiz
  *   The quiz node.
  *
- * @return
- *   Content array.
+ * @return QuizResult
+ *   Active quiz result.
  */
 function quiz_take_quiz($quiz) {
   global $user;
