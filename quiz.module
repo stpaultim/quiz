@@ -2875,7 +2875,7 @@ function quiz_get_questions($quiz_nid, $quiz_vid = NULL) {
   $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid', 'child_nid', 'child_vid'));
   $query->addField('n', 'vid', 'latest_vid');
   $query->join('node_revision', 'nr', 'n.nid = nr.nid');
-  $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+  $query->join('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
   $query->condition('n.status', 1);
   $query->condition('qnr.parent_nid', $quiz_nid);
   if ($quiz_vid) {
