@@ -2163,7 +2163,7 @@ function quiz_is_passed($uid, $nid, $vid) {
 /**
  * Can a user take this quiz?
  */
-function quiz_quiz_access($op = 'take', $quiz, $account) {
+function quiz_quiz_access($op, $quiz, $account) {
   $hooks = array();
 
   $user_is_admin = node_access('update', $quiz);
@@ -2274,7 +2274,7 @@ function quiz_quiz_access($op = 'take', $quiz, $account) {
  * @return array
  *   An array keyed with: 'success' and 'message'.
  */
-function quiz_access($op = 'take', stdClass $quiz, stdClass $account = NULL) {
+function quiz_access($op, stdClass $quiz, stdClass $account = NULL) {
   if (!$account) {
     global $user;
     $account = $user;
