@@ -623,6 +623,11 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
     $question = node_load($nid, $vid);
   }
 
+  if (!$question) {
+    // No question found. Can't return an instance.
+    return NULL;
+  }
+
   if (!empty($question->type)) {
     $constructor = $info[$question->type]['response provider'];
   }
