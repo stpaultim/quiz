@@ -2331,16 +2331,16 @@ function quiz_calculate_score($result_id) {
     // points_awarded is pre-scaled when the question is answered, so we just
     // need to find what max score it was scaled to.
     $weighted_score = $quiz_result_answer->points_awarded;
-    $QuizQuestionResponse = _quiz_question_response_get_instance($result_id, $question_node);
+    if ($QuizQuestionResponse = _quiz_question_response_get_instance($result_id, $question_node)) {
+      // Get the adjusted max score.
+      $max_score = $QuizQuestionResponse->getMaxScore();
 
-    // Get the adjusted max score.
-    $max_score = $QuizQuestionResponse->getMaxScore();
+      $numeric_score += $weighted_score;
+      $possible_score += $max_score;
 
-    $numeric_score += $weighted_score;
-    $possible_score += $max_score;
-
-    if (!$QuizQuestionResponse->isEvaluated()) {
-      $is_evaluated = 0;
+      if (!$QuizQuestionResponse->isEvaluated()) {
+        $is_evaluated = 0;
+      }
     }
   }
 
