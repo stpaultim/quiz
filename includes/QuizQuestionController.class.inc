@@ -1,5 +1,5 @@
 <?php
 
-class QuizQuestionController extends EntityAPIController {
+class QuizQuestionController extends EntityPlusController {
 
 }

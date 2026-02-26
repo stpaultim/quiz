@@ -26,6 +26,16 @@ function matching_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function matching_autoload_info() {
+  return array(
+    'MatchingQuestion' => 'matching.classes.inc',
+    'MatchingResponse' => 'matching.classes.inc',
+  );
+}
+
+/**
  * Implements hook_quiz_question_info().
  */
 function matching_quiz_question_info() {

@@ -3,6 +3,34 @@
 class QuizResult extends Entity {
 
   /**
+   * Implements EntityInterface::id().
+   */
+  public function id() {
+    return isset($this->result_id) ? $this->result_id : NULL;
+  }
+
+  /**
+   * Implements EntityInterface::entityType().
+   */
+  public function entityType() {
+    return 'quiz_result';
+  }
+
+  /**
+   * Legacy Entity API compatibility.
+   */
+  public function identifier() {
+    return $this->id();
+  }
+
+  /**
+   * Implements EntityInterface::uri().
+   */
+  public function uri() {
+    return array();
+  }
+
+  /**
    * Get the layout for this quiz result.
    *
    * The layout contains the questions to be delivered.

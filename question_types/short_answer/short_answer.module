@@ -19,6 +19,16 @@ function short_answer_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function short_answer_autoload_info() {
+  return array(
+    'ShortAnswerQuestion' => 'short_answer.classes.inc',
+    'ShortAnswerResponse' => 'short_answer.classes.inc',
+  );
+}
+
+/**
  * Implements hook_permission().
  */
 function short_answer_permission() {

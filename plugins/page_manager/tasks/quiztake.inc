@@ -78,7 +78,7 @@ function quiz_quiztake($node) {
     return $output;
   }
 
-  module_load_include('inc', 'quiz', 'quiz.node');
+  module_load_include('inc', 'quiz', 'quiz.pages');
   $function = 'quiz_take_page';
   foreach (module_implements('page_manager_override') as $module) {
     $call = $module . '_page_manager_override';

@@ -3,7 +3,7 @@ package = Quiz question
 description = This provides long answer (essay, multi-paragraph) question types for use by the Quiz module.
 dependencies[] = quiz
 dependencies[] = quiz_question
-core = 7.x
+backdrop = 1.x
 
-files[] = long_answer.classes.inc
-files[] = long_answer.test
+
+type = module

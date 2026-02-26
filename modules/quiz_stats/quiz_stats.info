@@ -1,6 +1,8 @@
 name = Quiz statistics
 description = Creates a report to compare and analyse the results of quiz attendees.
-core = 7.x
+backdrop = 1.x
 package = Quiz addon
 dependencies[] = quiz
 dependencies[] = charts
+
+type = module

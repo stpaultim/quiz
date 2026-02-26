@@ -33,6 +33,16 @@ function multichoice_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function multichoice_autoload_info() {
+  return array(
+    'MultichoiceQuestion' => 'multichoice.classes.inc',
+    'MultichoiceResponse' => 'multichoice.classes.inc',
+  );
+}
+
+/**
  * Implements hook_quiz_question_info().
  */
 function multichoice_quiz_question_info() {

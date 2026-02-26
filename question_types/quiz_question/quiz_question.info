@@ -1,7 +1,7 @@
 name = Quiz question
 package = Quiz core
 description = Helper module for all quiz question types
-core = 7.x
+backdrop = 1.x
 dependencies[] = quiz
-files[] = quiz_question.core.inc
-files[] = QuizQuestionTestCase.test
+
+type = module

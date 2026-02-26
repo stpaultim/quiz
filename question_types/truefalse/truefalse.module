@@ -25,6 +25,16 @@ function truefalse_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function truefalse_autoload_info() {
+  return array(
+    'TrueFalseQuestion' => 'truefalse.classes.inc',
+    'TrueFalseResponse' => 'truefalse.classes.inc',
+  );
+}
+
+/**
  * Implements hook_quiz_question_info().
  */
 function truefalse_quiz_question_info() {

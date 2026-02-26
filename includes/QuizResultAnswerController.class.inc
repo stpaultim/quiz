@@ -3,7 +3,7 @@
 /**
  * Controller for a single quiz question response.
  */
-class QuizResultAnswerController extends EntityAPIController {
+class QuizResultAnswerController extends EntityPlusController {
 
   /**
    * Build the response content with feedback.
@@ -49,13 +49,6 @@ class QuizResultAnswerController extends EntityAPIController {
       foreach ($labels as $reviewType => $label) {
         if ((isset($row[$reviewType]) && $instance->canReview($reviewType))) {
           $rows[$idx][$reviewType] = $row[$reviewType];
-          if (!empty($row[$reviewType])) {
-            $out[$reviewType] = array(
-              '#title' => $label,
-              '#type' => 'item',
-              '#markup' => $row[$reviewType],
-            );
-          }
         }
       }
     }

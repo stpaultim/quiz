@@ -1,6 +1,6 @@
 <?php
 
-class QuizResultController extends EntityAPIController {
+class QuizResultController extends EntityPlusController {
 
   public function delete($ids, \DatabaseTransaction $transaction = NULL) {
     foreach ($ids as $result_id) {
@@ -161,14 +161,18 @@ class QuizResultController extends EntityAPIController {
             'question_nid' => $question_node->nid,
             'question_vid' => $question_node->vid,
           ));
-          $qra = reset($qras);
+          $qra = $qras ? reset($qras) : FALSE;
+          if (!$qra) {
+            continue;
+          }
 
-          $feedback = $qra->view();
-          if (element_children($feedback['quiz_result_answer'][$instance->result_answer_id])) {
+          $feedback_element = _quiz_entity_view_extract($qra->view(), 'quiz_result_answer', $qra->result_answer_id);
+          $feedback_children = element_children($feedback_element);
+          if (!empty($feedback_children) || !empty($feedback_element['#markup'])) {
             $questions[$question_node->nid] = array(
               '#title' => t('Question @num', array('@num' => $question['display_number'])),
               '#type' => 'fieldset',
-              'feedback' => $feedback,
+              'feedback' => $feedback_element,
               '#weight' => $question['number'],
             );
           }
@@ -201,7 +205,8 @@ class QuizResultController extends EntityAPIController {
       $out['score']['#markup'] .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
     }
 
-    if (!element_children($out)) {
+    $out_children = is_array($out) ? $out : array();
+    if (!element_children($out_children)) {
       $out['no_feedback_text']['#markup'] = t('You have finished this @quiz.', array('@quiz' => QUIZ_NAME));
     }
 

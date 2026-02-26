@@ -27,6 +27,120 @@ define('QUIZ_KEEP_LATEST', 1);
 define('QUIZ_KEEP_ALL', 2);
 
 /**
+ * Backdrop compatibility wrappers for legacy Entity API helpers.
+ */
+if (!function_exists('entity_save')) {
+  function entity_save($entity_type, $entity) {
+    return entity_get_controller($entity_type)->save($entity);
+  }
+}
+
+if (!function_exists('entity_load_single')) {
+  function entity_load_single($entity_type, $id) {
+    if ($id === NULL || $id === FALSE) {
+      return FALSE;
+    }
+    return entity_load($entity_type, $id);
+  }
+}
+
+/**
+ * Normalize entity view builds across D7-style and Backdrop-style structures.
+ *
+ * @param mixed $build
+ *   The render array returned by entity view APIs.
+ * @param string|null $entity_type
+ *   Optional entity type key used in nested structures.
+ * @param int|string|null $entity_id
+ *   Optional entity ID key used in nested structures.
+ *
+ * @return array
+ *   The normalized render array for one entity.
+ */
+function _quiz_entity_view_extract($build, $entity_type = NULL, $entity_id = NULL) {
+  if (!is_array($build)) {
+    return array();
+  }
+
+  if ($entity_type !== NULL && $entity_id !== NULL && isset($build[$entity_type][$entity_id]) && is_array($build[$entity_type][$entity_id])) {
+    return $build[$entity_type][$entity_id];
+  }
+
+  if ($entity_type !== NULL && isset($build[$entity_type]) && is_array($build[$entity_type])) {
+    return $build[$entity_type];
+  }
+
+  return $build;
+}
+
+/**
+ * Label callback for quiz results.
+ *
+ * @param object $entity
+ *   The quiz_result entity object.
+ *
+ * @return string
+ *   A human-readable label.
+ */
+function quiz_result_label($entity) {
+  if (isset($entity->label) && $entity->label !== '') {
+    return $entity->label;
+  }
+  if (isset($entity->result_id)) {
+    return 'Result ' . $entity->result_id;
+  }
+  return '';
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function quiz_autoload_info() {
+  return array(
+    'Quiz' => 'includes/Quiz.class.inc',
+    'QuizController' => 'includes/QuizController.class.inc',
+    'QuizMetadataController' => 'includes/QuizMetadataController.class.inc',
+    'QuizQuestionController' => 'includes/QuizQuestionController.class.inc',
+    'QuizQuestionMetadataController' => 'includes/QuizQuestionMetadataController.class.inc',
+    'QuizQuestionRelationship' => 'includes/QuizQuestionRelationship.class.inc',
+    'QuizQuestionRelationshipController' => 'includes/QuizQuestionRelationshipController.class.inc',
+    'QuizQuestionRelationshipMetadataController' => 'includes/QuizQuestionRelationshipMetadataController.class.inc',
+    'QuizResult' => 'includes/QuizResult.class.inc',
+    'QuizResultAnswer' => 'includes/QuizResultAnswer.class.inc',
+    'QuizResultType' => 'includes/QuizResultType.class.inc',
+    'QuizResultAnswerController' => 'includes/QuizResultAnswerController.class.inc',
+    'QuizResultAnswerMetadataController' => 'includes/QuizResultAnswerMetadataController.class.inc',
+    'QuizResultController' => 'includes/QuizResultController.class.inc',
+    'QuizResultMetadataController' => 'includes/QuizResultMetadataController.class.inc',
+    'quiz_views_handler_filter_quiz_question' => 'includes/views/handlers/quiz_views_handler_filter_quiz_question.inc',
+    'quiz_views_handler_filter_quiz_question_type' => 'includes/views/handlers/quiz_views_handler_filter_quiz_question_type.inc',
+    'quiz_views_handler_field_quiz_question_result_answer' => 'includes/views/handlers/quiz_views_handler_field_quiz_question_result_answer.inc',
+  );
+}
+
+/**
+ * Implements hook_library_info().
+ */
+function quiz_library_info() {
+  $module_path = drupal_get_path('module', 'quiz');
+  return array(
+    'styles' => array(
+      'title' => 'Quiz styles',
+      'css' => array(
+        $module_path . '/quiz.css' => array(),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function quiz_init() {
+  backdrop_add_library('quiz', 'styles');
+}
+
+/**
  * Implements hook_help().
  */
 function quiz_help($path, $arg) {
@@ -60,11 +174,36 @@ function quiz_ctools_plugin_directory($owner, $plugin_type) {
 }
 
 /**
+ * Implements hook_plugin_manager_directory().
+ *
+ * Backdrop replacement for hook_ctools_plugin_directory().
+ */
+function quiz_plugin_manager_directory($owner, $plugin_type) {
+  if ($owner == 'page_manager') {
+    return 'plugins/page_manager/' . $plugin_type;
+  }
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/content_types';
+  }
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function quiz_ctools_plugin_api($module, $api) {
 
   if ($module == 'page_manager' && $api == 'pages_default') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_plugin_manager_api().
+ *
+ * Backdrop replacement for hook_ctools_plugin_api().
+ */
+function quiz_plugin_manager_api($owner, $api) {
+  if ($owner == 'page_manager' && $api == 'pages_default') {
     return array('version' => 1);
   }
 }
@@ -824,38 +963,6 @@ function quiz_field_extra_fields() {
         'description' => t('Checkbox for remembering @quiz settings', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
-    ),
-  );
-
-  $extra['quiz_result_answer']['quiz_result_answer']['display']['table'] = array(
-    'label' => t('Feedback table'),
-    'description' => t('A table of feedback.'),
-    'weight' => 0,
-  );
-  $options = quiz_get_feedback_options();
-  foreach ($options as $option => $label) {
-    $extra['quiz_result_answer']['quiz_result_answer']['display'][$option] = array(
-      'label' => $label,
-      'description' => t('Feedback for @label.', array('@label' => $label)),
-      'weight' => 0,
-    );
-  }
-
-  $extra['quiz_result']['quiz_result']['display'] = array(
-    'score' => array(
-      'label' => t('Score'),
-      'description' => t('The score of the result.'),
-      'weight' => 1,
-    ),
-    'questions' => array(
-      'label' => t('Questions'),
-      'description' => t('The questions in this result.'),
-      'weight' => 2,
-    ),
-    'summary' => array(
-      'label' => t('Summary'),
-      'description' => t('The summary and pass/fail text.'),
-      'weight' => 3,
     ),
   );
 
@@ -3407,7 +3514,7 @@ function quiz_entity_info() {
       ),
       'label' => 'Quiz properties',
       'metadata controller class' => 'QuizMetadataController',
-      'views controller class' => 'EntityDefaultViewsController',
+      'views controller class' => 'EntityPlusDefaultViewsController',
     ),
     'quiz_question_relationship' => array(
       'base table' => 'quiz_node_relationship',
@@ -3418,7 +3525,7 @@ function quiz_entity_info() {
       ),
       'label' => 'Quiz question relationship',
       'metadata controller class' => 'QuizQuestionRelationshipMetadataController',
-      'views controller class' => 'EntityDefaultViewsController',
+      'views controller class' => 'EntityPlusDefaultViewsController',
     ),
     'quiz_result' => array(
       'base table' => 'quiz_node_results',
@@ -3434,9 +3541,9 @@ function quiz_entity_info() {
       ),
       'fieldable' => TRUE,
       'label' => 'Quiz result',
-      'label callback' => 'entity_class_label',
+      'label callback' => 'quiz_result_label',
       'metadata controller class' => 'QuizResultMetadataController',
-      'views controller class' => 'EntityDefaultViewsController',
+      'views controller class' => 'EntityPlusDefaultViewsController',
       'access callback' => 'quiz_result_access',
     ),
     'quiz_result_answer' => array(
@@ -3458,17 +3565,17 @@ function quiz_entity_info() {
       'fieldable' => TRUE,
       'label' => 'Quiz result answer',
       'metadata controller class' => 'QuizResultAnswerMetadataController',
-      'views controller class' => 'EntityDefaultViewsController',
+      'views controller class' => 'EntityPlusDefaultViewsController',
     ),
   );
 
   if (db_table_exists('quiz_result_type')) {
     $entity_info['quiz_result_type'] = array(
       'label' => t('Quiz result type'),
-      'entity class' => 'Entity',
+      'entity class' => 'QuizResultType',
       'plural label' => t('Quiz result types'),
       'description' => t('Quiz result types.'),
-      'controller class' => 'EntityAPIControllerExportable',
+      'controller class' => 'EntityPlusControllerExportable',
       'base table' => 'quiz_result_type',
       'fieldable' => FALSE,
       'bundle of' => 'quiz_result',
@@ -3597,7 +3704,7 @@ function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_
           $out[] = array(
             '#title' => t('Question @num', array('@num' => $question2['display_number'])),
             '#type' => 'fieldset',
-            'feedback' => $qra->view(),
+            'feedback' => _quiz_entity_view_extract($qra->view(), 'quiz_result_answer', $qra->result_answer_id),
           );
         }
       }
@@ -3611,7 +3718,7 @@ function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_
     $out[] = array(
       '#title' => t('Question @num', array('@num' => $layout[$question_number]['display_number'])),
       '#type' => 'fieldset',
-      'feedback' => $qra->view(),
+      'feedback' => _quiz_entity_view_extract($qra->view(), 'quiz_result_answer', $qra->result_answer_id),
     );
   }
 
@@ -3760,41 +3867,44 @@ function quiz_feedback_can_review($option, QuizResult $quiz_result) {
 
   if ($admin) {
     // Admin user uses the global feedback options.
-    $review_options['end'] = variable_get('quiz_admin_review_options_end');
-    $review_options['question'] = variable_get('quiz_admin_review_options_question');
+    $review_options['end'] = variable_get('quiz_admin_review_options_end', array());
+    $review_options['question'] = variable_get('quiz_admin_review_options_question', array());
   }
   else {
     // Use this Quiz's feedback options.
-    $review_options = $quiz->review_options;
+    $review_options = (isset($quiz->review_options) && is_array($quiz->review_options)) ? $quiz->review_options : array();
   }
 
   $all_shows = array();
-  if (module_exists('rules')) {
-    foreach ($review_options as $time_key => $shows) {
-      // Loop through all the feedback times and check conditions.
-      if ($set = rules_config_load("quiz_feedback_{$time_key}")) {
+  $rules_enabled = module_exists('rules');
+  foreach ($review_options as $time_key => $shows) {
+    // Loop through all the feedback times and check conditions.
+    $rule_passed = TRUE;
+    if ($rules_enabled) {
+      $set = rules_config_load("quiz_feedback_{$time_key}");
+      if (!$set) {
+        continue;
+      }
+      $rule_passed = $set->execute($quiz_result);
+    }
 
-        $rule_passed = $set->execute($quiz_result);
-
-        if (in_array($time_key, array('question', 'end'))) {
-          // Special handling for built in conditions.
-          if ($rule_passed && $time_key == 'end') {
-            if ($quiz_result->time_end && arg(2) != 'take') {
-              $all_shows += array_filter($shows);
-            }
-          }
-          if ($rule_passed && $time_key == 'question' && arg(2) == 'take') {
-            // Special handling for after question.
-            if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
-              $all_shows += array_filter($shows);
-            }
-          }
-          }
-        else if ($rule_passed) {
-          // Not one of the above two, add all shows.
+    if (in_array($time_key, array('question', 'end'))) {
+      // Special handling for built in conditions.
+      if ($rule_passed && $time_key == 'end') {
+        if ($quiz_result->time_end && arg(2) != 'take') {
           $all_shows += array_filter($shows);
         }
       }
+      if ($rule_passed && $time_key == 'question' && (arg(2) == 'take' || arg(2) == 'quiz')) {
+        // Special handling for after question.
+        if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
+          $all_shows += array_filter($shows);
+        }
+      }
+    }
+    else if ($rule_passed && $rules_enabled) {
+      // Custom feedback times require Rules conditions.
+      $all_shows += array_filter($shows);
     }
   }
   return !empty($all_shows[$option]);
@@ -3943,7 +4053,7 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
       if ($instance->getQuizQuestion()->hasFeedback()) {
         // The display of the question.
         $form['question'][$idx] = $instance->getReportForm();
-        $form['question'][$idx]['response'] = $qra->view();
+        $form['question'][$idx]['response'] = _quiz_entity_view_extract($qra->view(), 'quiz_result_answer', $qra->result_answer_id);
         $form['question'][$idx]['#tree'] = TRUE;
         $form['question'][$idx]['#type'] = 'fieldset';
         $form['question'][$idx]['#title'] = t('Question @num', array('@num' => $question['display_number']));

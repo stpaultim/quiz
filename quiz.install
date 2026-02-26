@@ -9,9 +9,23 @@
  * Implements hook_install().
  */
 function quiz_install() {
-  node_types_rebuild();
-  $types = node_type_get_types();
-  node_add_body_field($types['quiz']);
+  $quiz_type = node_type_get_type('quiz');
+  if (!$quiz_type) {
+    node_type_save(array(
+      'type' => 'quiz',
+      'name' => t('Quiz'),
+      'base' => 'quiz',
+      'module' => 'quiz',
+      'description' => t('Create interactive quizzes for site visitors'),
+      'custom' => FALSE,
+      'modified' => FALSE,
+      'locked' => TRUE,
+    ));
+    $quiz_type = node_type_get_type('quiz');
+  }
+  if ($quiz_type && !field_info_instance('node', 'body', 'quiz')) {
+    node_add_body_field($quiz_type);
+  }
 
   // Default the "Show Author and Date" for quiz nodes to OFF.
   $temp_array = variable_get('theme_settings', array());
@@ -34,9 +48,13 @@ function quiz_install() {
   quiz_update_7521();
 
   // Install a default bundle.
-  db_insert('quiz_result_type')
-    ->fields(array('label' => 'Quiz result', 'type' => 'quiz_result'))
+  db_merge('quiz_result_type')
+    ->key(array('type' => 'quiz_result'))
+    ->fields(array('label' => 'Quiz result'))
     ->execute();
+
+  // Install default views provided by Quiz.
+  quiz_update_7528();
 }
 
 /**
@@ -1364,4 +1382,96 @@ function quiz_update_7525() {
   if (!db_index_exists('quiz_node_relationship', 'qnr_pid')) {
     db_add_index('quiz_node_relationship', 'qnr_pid', array('qnr_pid'));
   }
+}
+
+/**
+ * Ensure the quiz content type exists for pre-Backdrop installs.
+ */
+function quiz_update_7526() {
+  $quiz_type = node_type_get_type('quiz');
+  if (!$quiz_type) {
+    node_type_save(array(
+      'type' => 'quiz',
+      'name' => t('Quiz'),
+      'base' => 'quiz',
+      'module' => 'quiz',
+      'description' => t('Create interactive quizzes for site visitors'),
+      'custom' => FALSE,
+      'modified' => FALSE,
+      'locked' => TRUE,
+    ));
+    $quiz_type = node_type_get_type('quiz');
+  }
+  if ($quiz_type && !field_info_instance('node', 'body', 'quiz')) {
+    node_add_body_field($quiz_type);
+  }
+
+  // Ensure node/add routes include the quiz bundle.
+  menu_rebuild();
+
+  return t('Ensured the Quiz content type is available.');
+}
+
+/**
+ * Ensure the default quiz result type exists.
+ */
+function quiz_update_7527() {
+  if (!db_table_exists('quiz_result_type')) {
+    return t('Skipped: quiz_result_type table does not exist yet.');
+  }
+
+  db_merge('quiz_result_type')
+    ->key(array('type' => 'quiz_result'))
+    ->fields(array('label' => 'Quiz result'))
+    ->execute();
+
+  if (db_field_exists('quiz_node_properties', 'result_type')) {
+    db_update('quiz_node_properties')
+      ->fields(array('result_type' => 'quiz_result'))
+      ->isNull('result_type')
+      ->execute();
+  }
+
+  if (db_field_exists('quiz_node_results', 'type')) {
+    db_update('quiz_node_results')
+      ->fields(array('type' => 'quiz_result'))
+      ->isNull('type')
+      ->execute();
+  }
+
+  return t('Ensured default quiz result type exists.');
+}
+
+/**
+ * Install missing default Quiz views into Backdrop config.
+ */
+function quiz_update_7528() {
+  module_load_include('inc', 'quiz', 'includes/views/quiz.views_default');
+
+  $installed = array();
+  $default_views = quiz_views_default_views();
+  $required_views = array(
+    'quiz_user_results',
+    'quiz_question_bank',
+    'quiz_results',
+    'quiz_unevaluated_results',
+  );
+
+  foreach ($required_views as $view_name) {
+    if (empty($default_views[$view_name])) {
+      continue;
+    }
+    if (config('views.view.' . $view_name)->get()) {
+      continue;
+    }
+
+    $default_views[$view_name]->save();
+    $installed[] = $view_name;
+  }
+
+  if ($installed) {
+    return t('Installed default Quiz views: @views', array('@views' => implode(', ', $installed)));
+  }
+
+  return t('No default Quiz views needed installation.');
 }

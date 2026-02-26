@@ -4,6 +4,9 @@ results are displayed during or after the quiz. Administrators can provide
 automatic or manual feedback. See all the features below! This module can be
 used as
 
+Backdrop-specific architecture and D7-to-Backdrop port notes are documented in
+`BACKDROP_PORT.md`.
+
 *   an object in a larger LMS, or a supplemental classroom activity
 *   a standalone activity (audio, video, rich text in questions/answers)
 *   a self-learning program, using adaptive mode with multiple answer tries

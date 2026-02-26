@@ -18,6 +18,19 @@ function quiz_question_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function quiz_question_autoload_info() {
+  return array(
+    'QuizQuestion' => 'quiz_question.core.inc',
+    'QuizQuestionEntity' => 'QuizQuestionEntity.class.inc',
+    'QuizQuestionResponse' => 'quiz_question.core.inc',
+    'QuizQuestionBroken' => 'quiz_question.core.inc',
+    'QuizQuestionResponseBroken' => 'quiz_question.core.inc',
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function quiz_question_menu() {
@@ -676,7 +689,42 @@ function quiz_question_get_info($name = NULL, $reset = FALSE) {
     }
     drupal_alter('quiz_question_info', $info);
   }
-  return NULL === $name ? $info : $info[$info];
+  return NULL === $name ? $info : (isset($info[$name]) ? $info[$name] : NULL);
+}
+
+/**
+ * Ensure a question node type exists as a Backdrop config entity.
+ *
+ * @param string $type
+ *   The question type machine name.
+ *
+ * @return object|false
+ *   The node type object, or FALSE if it could not be created.
+ */
+function quiz_question_ensure_node_type($type) {
+  $node_type = node_type_get_type($type);
+  if ($node_type) {
+    return $node_type;
+  }
+
+  $definitions = quiz_question_get_info(NULL, TRUE);
+  if (empty($definitions[$type])) {
+    return FALSE;
+  }
+
+  $definition = $definitions[$type];
+  $node_type = array(
+    'type' => $type,
+    'name' => $definition['name'],
+    'base' => 'quiz_question',
+    'description' => isset($definition['description']) ? $definition['description'] : '',
+    'custom' => FALSE,
+    'modified' => FALSE,
+    'locked' => TRUE,
+  );
+  node_type_save($node_type);
+
+  return node_type_get_type($type);
 }
 
 /**
@@ -721,16 +769,21 @@ function quiz_question_report_form($question, $result_id) {
  *   The question content type machine name.
  */
 function quiz_question_add_body_field($type) {
-  node_types_rebuild();
-  $node_type = node_type_get_type($type);
+  $node_type = quiz_question_ensure_node_type($type);
   if (!$node_type) {
     watchdog('quiz', 'Attempt to add body field was failed as question content type %type is not defined.', array('%type' => $type), WATCHDOG_ERROR);
     watchdog('quiz', '<pre>' . print_r(node_type_get_types(), 1), array(), WATCHDOG_ERROR);
     return;
   }
-  node_add_body_field($node_type, 'Question');
+  if (!field_info_instance('node', 'body', $type)) {
+    node_add_body_field($node_type, 'Question');
+  }
+
   // Override default weight to make body field appear first.
   $instance = field_read_instance('node', 'body', $type);
+  if (!$instance) {
+    return;
+  }
   $instance['widget']['weight'] = -10;
   $instance['widget']['settings']['rows'] = 6;
 
@@ -966,7 +1019,7 @@ function quiz_question_element_validate(&$element, &$form_state) {
     $qra = entity_load_single('quiz_result_answer', $result->result_answer_id);
     // Load the temporary answer to the result answer entity.
     $qra->instance = $result;
-    $element['feedback'] = $qra->view();
+    $element['feedback'] = _quiz_entity_view_extract($qra->view(), 'quiz_result_answer', $qra->result_answer_id);
     $element['feedback']['#weight'] = 100;
   }
 }
@@ -1003,13 +1056,13 @@ function quiz_question_entity_info() {
     'quiz_question' => array(
       'base table' => 'quiz_question_properties',
       'controller class' => 'QuizQuestionController',
-      'entity class' => 'Entity',
+      'entity class' => 'QuizQuestionEntity',
       'entity keys' => array(
         'id' => 'qqp_id',
       ),
       'label' => 'Quiz question properties',
       'metadata controller class' => 'QuizQuestionMetadataController',
-      'views controller class' => 'EntityDefaultViewsController',
+      'views controller class' => 'EntityPlusDefaultViewsController',
     ),
   );
 }

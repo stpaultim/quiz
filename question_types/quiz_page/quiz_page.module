@@ -18,6 +18,16 @@ function quiz_page_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function quiz_page_autoload_info() {
+  return array(
+    'QuizPagesQuestion' => 'quiz_page.classes.inc',
+    'QuizPagesResponse' => 'quiz_page.classes.inc',
+  );
+}
+
+/**
  * Implements hook_quiz_question_info().
  */
 function quiz_page_quiz_question_info() {

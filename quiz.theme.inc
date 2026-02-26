@@ -317,7 +317,8 @@ function theme_question_selection_table($variables) {
   // Building table body.
   $rows = array();
   if (!empty($form['titles'])) {
-    foreach (element_children($form['titles']) as $id) {
+    $title_children = is_array($form['titles']) ? element_children($form['titles']) : array();
+    foreach ($title_children as $id) {
       $form['weights'][$id]['#attributes']['class'] = array('question-list-weight');
       $form['qnr_ids'][$id]['#attributes']['class'] = array('qnr-id');
       $form['qnr_pids'][$id]['#attributes']['class'] = array('qnr-pid');

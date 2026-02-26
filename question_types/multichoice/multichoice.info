@@ -1,8 +1,8 @@
 name = Quiz - Multichoice
 package = Quiz question
 description = Multiple choice question type for quiz.
-core = 7.x
+backdrop = 1.x
 dependencies[] = quiz
 dependencies[] = quiz_question
-files[] = multichoice.classes.inc
-files[] = multichoice.test
+
+type = module

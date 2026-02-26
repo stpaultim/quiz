@@ -7,6 +7,8 @@
  * Variables available:
  * - $form.
  */
+$form = is_array($form) ? $form : array();
+$rows = array();
 foreach (element_children($form) as $key) {
   if (is_numeric($key)) {
     $row = array(

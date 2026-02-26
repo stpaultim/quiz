@@ -1,4 +1,6 @@
 name = Quiz test fixtures
 package = Quiz core
-core = 7.x
+backdrop = 1.x
 hidden = TRUE
+
+type = module

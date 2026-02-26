@@ -1,9 +1,9 @@
 name = Quiz - Matching question
 package = Quiz question
 description = Provide a way to create matching type of questions.
-core = 7.x
+backdrop = 1.x
 dependencies[] = quiz
 dependencies[] = quiz_question
 
-files[] = matching.classes.inc
-files[] = matching.test
+
+type = module

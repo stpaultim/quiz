@@ -18,6 +18,16 @@ function scale_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function scale_autoload_info() {
+  return array(
+    'ScaleQuestion' => 'scale.classes.inc',
+    'ScaleResponse' => 'scale.classes.inc',
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function scale_menu() {

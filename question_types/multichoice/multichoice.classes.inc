@@ -14,6 +14,32 @@
 class MultichoiceQuestion extends QuizQuestion {
 
   /**
+   * Constructor.
+   */
+  public function __construct(stdClass $node) {
+    parent::__construct($node);
+    $this->normalizeChoiceSettings();
+    if (empty($this->node->alternatives) || !is_array($this->node->alternatives)) {
+      $this->node->alternatives = array();
+    }
+  }
+
+  /**
+   * Ensure choice settings are always present.
+   */
+  private function normalizeChoiceSettings() {
+    if (!isset($this->node->choice_multi)) {
+      $this->node->choice_multi = 0;
+    }
+    if (!isset($this->node->choice_random)) {
+      $this->node->choice_random = 0;
+    }
+    if (!isset($this->node->choice_boolean)) {
+      $this->node->choice_boolean = 0;
+    }
+  }
+
+  /**
    * Forgive some possible logical flaws in the user input.
    */
   private function forgive() {
@@ -334,6 +360,11 @@ class MultichoiceQuestion extends QuizQuestion {
       return $this->nodeProperties;
     }
     $props = parent::getNodeProperties();
+    $props += array(
+      'choice_multi' => 0,
+      'choice_random' => 0,
+      'choice_boolean' => 0,
+    );
 
     $res_a = db_query('SELECT choice_multi, choice_random, choice_boolean FROM {quiz_multichoice_properties}
             WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
@@ -341,6 +372,9 @@ class MultichoiceQuestion extends QuizQuestion {
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
     }
+    $props['choice_multi'] = (int) $props['choice_multi'];
+    $props['choice_random'] = (int) $props['choice_random'];
+    $props['choice_boolean'] = (int) $props['choice_boolean'];
 
     // Load the answers.
     $res = db_query('SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
@@ -803,6 +837,24 @@ class MultichoiceResponse extends QuizQuestionResponse {
   protected $choice_order;
 
   /**
+   * Ensure choice settings are always present.
+   */
+  private function normalizeQuestionSettings() {
+    if (!isset($this->question->choice_multi)) {
+      $this->question->choice_multi = 0;
+    }
+    if (!isset($this->question->choice_random)) {
+      $this->question->choice_random = 0;
+    }
+    if (!isset($this->question->choice_boolean)) {
+      $this->question->choice_boolean = 0;
+    }
+    if (empty($this->question->alternatives) || !is_array($this->question->alternatives)) {
+      $this->question->alternatives = array();
+    }
+  }
+
+  /**
    * Constructor.
    *
    * @param int $result_id
@@ -815,6 +867,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function __construct($result_id, stdClass $question_node, $values = NULL) {
     parent::__construct($result_id, $question_node, (isset($values['user_answer']) ? $values['user_answer'] : NULL));
+    $this->normalizeQuestionSettings();
     $this->user_answer_ids = array();
     // Tries is the tries part of the post data.
     if (isset($values['user_answer'])) {

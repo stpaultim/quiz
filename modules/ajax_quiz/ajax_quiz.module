@@ -46,7 +46,7 @@ function ajax_quiz_form_alter(&$form, &$form_state, $form_id) {
     );
 
     // Add ajax to each submit button.
-    $nav_children = element_children($form['navigation']);
+    $nav_children = (isset($form['navigation']) && is_array($form['navigation'])) ? element_children($form['navigation']) : array();
     foreach ($nav_children as $nav_child) {
       if (isset($form['navigation'][$nav_child]['#type']) && $form['navigation'][$nav_child]['#type'] == 'submit') {
         $form['navigation'][$nav_child]['#ajax'] = $ajax;
@@ -59,7 +59,6 @@ function ajax_quiz_form_alter(&$form, &$form_state, $form_id) {
  * AJAX callback for quiz submission.
  */
 function ajax_quiz_navigate_quiz($form, &$form_state) {
-  ctools_include('ajax');
   // Array for ajax commands to return.
   $commands = array();
 
@@ -173,12 +172,12 @@ function ajax_quiz_navigate_quiz($form, &$form_state) {
   // Only have a result?
   elseif ($quiz_result) {
     // If there is a quiz result, but no current question. Completed quiz.
-    $commands[] = ctools_ajax_command_redirect('node/' . $quiz_result->nid . '/quiz-results/' . $quiz_result->result_id . '/view');
+    $commands[] = ajax_command_redirect(url('node/' . $quiz_result->nid . '/quiz-results/' . $quiz_result->result_id . '/view', array('absolute' => TRUE)));
   }
   // No result, but have a quiz?
   else {
     // don't know what to do redirect back to quiz.
-    $commands[] = ctools_ajax_command_redirect('node/' . $quiz->nid);
+    $commands[] = ajax_command_redirect(url('node/' . $quiz->nid, array('absolute' => TRUE)));
   }
 
   // Return ajax commands.

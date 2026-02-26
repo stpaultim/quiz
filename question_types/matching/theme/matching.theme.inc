@@ -21,7 +21,8 @@ function theme_matching_question_form($variables) {
     'answer' => t('Correct answer'),
     'feedback' => t('Feedback'),
   );
-  foreach (element_children($form) as $key) {
+  $form_children = is_array($form) ? element_children($form) : array();
+  foreach ($form_children as $key) {
     $rows[] = array(
       'question' => drupal_render($form[$key]['question']),
       'answer' => drupal_render($form[$key]['answer']),

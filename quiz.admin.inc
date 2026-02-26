@@ -340,7 +340,11 @@ function quiz_questions_page($node) {
   if ($node->randomization < 3) {
     $mq_form = drupal_get_form('quiz_questions_form', $node);
     $manage_questions = drupal_render($mq_form);
-    $question_bank = views_get_view('quiz_question_bank')->preview();
+    $question_bank = '';
+    $question_bank_view = views_get_view('quiz_question_bank');
+    if ($question_bank_view) {
+      $question_bank = $question_bank_view->preview();
+    }
 
     // Insert into vert tabs.
     $form['vert_tabs'] = array(

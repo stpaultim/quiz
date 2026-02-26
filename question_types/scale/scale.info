@@ -1,9 +1,9 @@
 name = Quiz - Scale
 package = Quiz question
 description = Scale question type for quiz.
-core = 7.x
+backdrop = 1.x
 dependencies[] = quiz
 dependencies[] = quiz_question
 
-files[] = scale.classes.inc
-files[] = scale.test
+
+type = module

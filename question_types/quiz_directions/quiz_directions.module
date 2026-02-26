@@ -18,6 +18,16 @@ function quiz_directions_help($path, $args) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function quiz_directions_autoload_info() {
+  return array(
+    'QuizDirectionsQuestion' => 'quiz_directions.classes.inc',
+    'QuizDirectionsResponse' => 'quiz_directions.classes.inc',
+  );
+}
+
+/**
  * Implements hook_quiz_question_info().
  */
 function quiz_directions_quiz_question_info() {

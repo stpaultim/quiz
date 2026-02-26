@@ -24,6 +24,16 @@ function long_answer_help($path, $arg) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function long_answer_autoload_info() {
+  return array(
+    'LongAnswerQuestion' => 'long_answer.classes.inc',
+    'LongAnswerResponse' => 'long_answer.classes.inc',
+  );
+}
+
+/**
  * Implements hook_quiz_question_info().
  */
 function long_answer_quiz_question_info() {

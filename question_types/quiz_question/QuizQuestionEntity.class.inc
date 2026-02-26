@@ -1,26 +1,19 @@
 <?php
 
-class QuizQuestionRelationship extends Entity {
+class QuizQuestionEntity extends Entity {
 
   /**
    * Implements EntityInterface::id().
    */
   public function id() {
-    return isset($this->qnr_id) ? $this->qnr_id : NULL;
+    return isset($this->qqp_id) ? $this->qqp_id : NULL;
   }
 
   /**
    * Implements EntityInterface::entityType().
    */
   public function entityType() {
-    return 'quiz_question_relationship';
-  }
-
-  /**
-   * Legacy Entity API compatibility.
-   */
-  public function identifier() {
-    return $this->id();
+    return 'quiz_question';
   }
 
   /**
