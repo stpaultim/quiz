@@ -1242,7 +1242,8 @@ function quiz_take_page($quiz) {
  * @return bool
  */
 function quiz_take_access($node) {
-  return quiz_access('take', $node);
+  $result = quiz_access('take', $node);
+  return !empty($result['success']);
 }
 
 /**

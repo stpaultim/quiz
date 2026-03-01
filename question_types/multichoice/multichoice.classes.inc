@@ -750,6 +750,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     // The user is creating his first multichoice node.
     else {
+      $settings = array();
       $settings['choice_multi'] = 0;
       $settings['choice_random'] = 0;
       $settings['choice_boolean'] = 0;

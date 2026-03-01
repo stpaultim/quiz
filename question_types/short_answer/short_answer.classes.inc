@@ -237,8 +237,8 @@ class ShortAnswerQuestion extends QuizQuestion {
     $score = 0;
 
     // Ignore white spaces for correct answer and user's answer.
-    $user_answer = trim($user_answer);
-    $this->node->correct_answer = trim($this->node->correct_answer);
+    $user_answer = trim($user_answer ?? '');
+    $this->node->correct_answer = trim($this->node->correct_answer ?? '');
 
     switch ($this->node->correct_answer_evaluation) {
       case self::ANSWER_MATCH:
@@ -275,6 +275,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   protected $answer_id = 0;
   private $answer_feedback;
   private $answer_feedback_format;
+  public $is_evaluated;
 
   /**
    * Constructor.

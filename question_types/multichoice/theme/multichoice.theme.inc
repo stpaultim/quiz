@@ -58,25 +58,16 @@ function theme_multichoice_answer_node_view($variables) {
       $image = 'unknown';
     }
 
+    $title = $show_correct ?
+      t('Score if chosen: @sc Score if not chosen: @nc', array(
+        '@sc' => $short['score_if_chosen'],
+        '@nc' => $short['score_if_not_chosen'],
+      )) :
+      t('You are not allowed to view the solution for this question');
     $rows[] = array(
       array(
         'width' => 64,
-        'data' => array(
-          '#theme' => 'html_tag',
-          '#tag' => 'span',
-          '#attributes' => array(
-            'class' => array(
-              'quiz-score-icon',
-              $image,
-            ),
-            'title' => $show_correct ?
-            t('Score if chosen: @sc Score if not chosen: @nc', array(
-              '@sc' => $short['score_if_chosen'],
-              '@nc' => $short['score_if_not_chosen'],
-            )) :
-            t('You are not allowed to view the solution for this question'),
-          ),
-        ),
+        'data' => '<span' . backdrop_attributes(array('class' => array('quiz-score-icon', $image), 'title' => $title)) . '></span>',
       ),
       $answer_markup,
     );

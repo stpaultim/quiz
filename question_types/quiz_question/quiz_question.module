@@ -590,7 +590,7 @@ function quiz_question_load($nodes) {
  */
 function _quiz_question_get_instance($node) {
   $info = quiz_question_get_info();
-  if (!empty($node->type)) {
+  if (!empty($node->type) && isset($info[$node->type])) {
     $constructor = $info[$node->type]['question provider'];
   }
   else {
@@ -641,7 +641,7 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
     return NULL;
   }
 
-  if (!empty($question->type)) {
+  if (!empty($question->type) && isset($info[$question->type])) {
     $constructor = $info[$question->type]['response provider'];
   }
 
@@ -1005,8 +1005,11 @@ function quiz_question_node_grants($account, $op) {
 /**
  * Element validator (for repeat until correct).
  */
-function quiz_question_element_validate(&$element, &$form_state) {
-  $quiz = node_load($form_state['complete form']['#quiz']['nid'], $form_state['complete form']['#quiz']['vid']);
+function quiz_question_element_validate(&$element, &$form_state, $complete_form) {
+  $quiz = node_load($complete_form['#quiz']['nid'], $complete_form['#quiz']['vid']);
+  if (!$quiz) {
+    return;
+  }
   $question_nid = $element['#array_parents'][1];
   $answer = $form_state['values']['question'][$question_nid]['answer'];
   $current_question = node_load($question_nid);

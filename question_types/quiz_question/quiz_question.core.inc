@@ -228,7 +228,7 @@ abstract class QuizQuestion {
   public function save($is_new = FALSE) {
     // We call the abstract function saveNodeProperties to save type specific
     // data.
-    $this->saveNodeProperties($this->node->is_new);
+    $this->saveNodeProperties(!empty($this->node->is_new));
 
     db_merge('quiz_question_properties')
       ->key(array(
@@ -513,6 +513,15 @@ abstract class QuizQuestionResponse {
   protected $score;
   public $is_skipped;
   public $is_doubtful;
+  // Columns from quiz_node_results_answers populated in __construct().
+  public $result_answer_id;
+  public $question_nid;
+  public $question_vid;
+  public $tid;
+  public $points_awarded;
+  public $answer_timestamp;
+  public $number;
+  public $display_number;
 
   /**
    * Create a new user response.
@@ -619,6 +628,9 @@ abstract class QuizQuestionResponse {
   public function getMaxScore($weight_adjusted = TRUE) {
     if ($weight_adjusted) {
       $quiz_result = quiz_result_load($this->result_id);
+      if (!$quiz_result) {
+        return $this->quizQuestion->getMaximumScore();
+      }
       $relationships = entity_load('quiz_question_relationship', FALSE, array(
         'parent_nid' => $quiz_result->nid,
         'parent_vid' => $quiz_result->vid,
@@ -631,11 +643,7 @@ abstract class QuizQuestionResponse {
       }
 
       $quiz = node_load($quiz_result->nid);
-      if ($quiz->randomization == 2) {
-        // This isn't necessary, since setting a max score for random questions
-        // updates them all.
-      }
-      if ($quiz->randomization == 3) {
+      if ($quiz && $quiz->randomization == 3) {
         $max_score = db_select('quiz_terms', 'qt')
           ->fields('qt', array('max_score'))
           ->condition('tid', $this->tid)

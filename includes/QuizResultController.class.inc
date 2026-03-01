@@ -140,12 +140,13 @@ class QuizResultController extends EntityPlusController {
     $score = quiz_calculate_score($entity->result_id);
     $account = user_load($entity->uid);
 
+    global $user;
     $params = array(
       '%num_correct' => $score['numeric_score'],
       '%question_count' => $score['possible_score'],
-      '!username' => ($account->uid == $account->uid) ? t('You') : theme('username', array('account' => $account)),
+      '!username' => ($user->uid == $account->uid) ? t('You') : theme('username', array('account' => $account)),
       '@score' => $score['percentage_score'],
-      '!yourtotal' => ($account->uid == $account->uid) ? t('Your') : t('Total'),
+      '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
     );
 
     $questions = array();

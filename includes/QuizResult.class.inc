@@ -54,6 +54,7 @@ class QuizResult extends Entity {
       $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => array($this->identifier())));
       if ($quiz_result_answers) {
         foreach ($quiz_result_answers as $quiz_result_answer) {
+          $relationship = NULL;
           if (!empty($relationships[$quiz_result_answer->question_nid])) {
             $relationship = $relationships[$quiz_result_answer->question_nid];
           }

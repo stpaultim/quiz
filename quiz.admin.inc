@@ -1166,7 +1166,7 @@ function quiz_questions_form_submit($form, &$form_state) {
   // questions.
   if ($num_random > $assigned_random) {
     $num_random = $assigned_random;
-    drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), array('langcode' => 'warning')));
+    drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random)), 'warning');
   }
 
   if ($quiz->type == 'quiz') {
@@ -1309,13 +1309,20 @@ function quiz_set_auto_title() {
  */
 function quiz_feedback_page() {
   $rows = array();
-  $header = array(t('Time'), t('Description'), t('Conditions'));
+  $rules_enabled = module_exists('rules');
+  $header = array(t('Time'), t('Description'));
+  if ($rules_enabled) {
+    $header[] = t('Conditions');
+  }
   foreach (quiz_get_feedback_times() as $key => $time) {
-    $conditions = l(t('Conditions'), 'admin/quiz/feedback/manage/quiz_feedback_' . $key);
-    $rows[] = array($time['name'], $time['description'], $conditions);
+    $row = array($time['name'], $time['description']);
+    if ($rules_enabled) {
+      $row[] = l(t('Conditions'), 'admin/quiz/feedback/manage/quiz_feedback_' . $key);
+    }
+    $rows[] = $row;
   }
 
-  return theme(
+  $output = theme(
     'table',
     array(
       'caption' => t('Quiz feedback conditions'),
@@ -1323,4 +1330,12 @@ function quiz_feedback_page() {
       'header' => $header
     )
   );
+
+  if (!$rules_enabled) {
+    $output .= '<p>' . t('Additional feedback conditions are available when the !rules module is enabled.', array(
+      '!rules' => l(t('Rules'), 'https://backdropcms.org/project/rules'),
+    )) . '</p>';
+  }
+
+  return $output;
 }
